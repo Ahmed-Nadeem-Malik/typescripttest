@@ -1,3 +1,4 @@
+"use strict";
 // these are the primitive types
 console.log("=== 0) Basics ===");
 console.log("Hello World");
@@ -101,9 +102,8 @@ console.log("encoded JOIN:", encode(joinDemo));
 console.log("");
 // =======================================================
 console.log("=== 7) WebSocket Client ===");
-console.log("=== 7) WebSocket Client (Browser) ===");
 const SERVER_URL = "ws://localhost:8080";
-const PLAYER_NAME = "Ahmed"; // or prompt/localStorage/etc.
+const PLAYER_NAME = "Ahmed";
 let myId = null;
 let gameState = { players: [], timestamp: Date.now() };
 function render() {
@@ -183,4 +183,3 @@ document.addEventListener("keydown", (e) => {
         e.preventDefault();
     send(ws, { type: "MOVE", payload: { direction } });
 });
-export {};

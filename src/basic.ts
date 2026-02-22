@@ -158,98 +158,95 @@ console.log("")
 
 console.log("=== 7) WebSocket Client ===")
 
-console.log("=== 7) WebSocket Client (Browser) ===")
-
 const SERVER_URL = "ws://localhost:8080"
 const PLAYER_NAME = "Ahmed"
 
 let myId: string | null = null
-let gameState: GameState = {players: [], timestamp: Date.now()}
+let gameState: GameState = { players: [], timestamp: Date.now() }
 
 function render() {
-    console.clear()
-    console.log("Server:", SERVER_URL)
-    console.log("Name:", PLAYER_NAME)
-    if (myId) console.log("My ID:", myId)
-    console.log("Players:", gameState.players.length)
-    console.log("")
+  console.clear()
+  console.log("Server:", SERVER_URL)
+  console.log("Name:", PLAYER_NAME)
+  if (myId) console.log("My ID:", myId)
+  console.log("Players:", gameState.players.length)
+  console.log("")
 
-    for (const p of gameState.players) {
-        const me = p.id === myId ? " (me)" : ""
-        console.log(`${p.name}${me} @ (${p.x}, ${p.y})`)
-    }
+  for (const p of gameState.players) {
+    const me = p.id === myId ? " (me)" : ""
+    console.log(`${p.name}${me} @ (${p.x}, ${p.y})`)
+  }
 
-    console.log("")
-    console.log("Controls: WASD / Arrow keys to move")
+  console.log("")
+  console.log("Controls: WASD / Arrow keys to move")
 }
 
-function send(ws: globalThis.WebSocket, msg: ClientMessage) {
-    if (ws.readyState === globalThis.WebSocket.OPEN) {
-        ws.send(encode(msg))
-    }
+function send(ws: WebSocket, msg: ClientMessage) {
+  if (ws.readyState === WebSocket.OPEN) {
+    ws.send(encode(msg))
+  }
 }
 
 function keyToDirection(key: string): Direction | null {
-    switch (key) {
-        case "w":
-        case "arrowup":
-            return "UP"
-        case "a":
-        case "arrowleft":
-            return "LEFT"
-        case "s":
-        case "arrowdown":
-            return "DOWN"
-        case "d":
-        case "arrowright":
-            return "RIGHT"
-        default:
-            return null
-    }
+  switch (key) {
+    case "w":
+    case "arrowup":
+      return "UP"
+    case "a":
+    case "arrowleft":
+      return "LEFT"
+    case "s":
+    case "arrowdown":
+      return "DOWN"
+    case "d":
+    case "arrowright":
+      return "RIGHT"
+    default:
+      return null
+  }
 }
 
-const ws = new globalThis.WebSocket(SERVER_URL)
+const ws = new WebSocket(SERVER_URL)
 
-ws.addEventListener("open", () => {
-    console.log("Connected")
-    send(ws, {type: "JOIN", payload: {name: PLAYER_NAME}})
-    render()
-})
+ws.onopen = () => {
+  console.log("Connected")
+  send(ws, { type: "JOIN", payload: { name: PLAYER_NAME } })
+  render()
+}
 
-ws.addEventListener("message", (event: MessageEvent) => {
-    const raw = String(event.data)
-    const msg = decode(raw)
-    if (!msg) return
+ws.onmessage = (event: MessageEvent) => {
+  const raw = String(event.data)
+  const msg = decode(raw)
+  if (!msg) return
 
-    switch (msg.type) {
-        case "WELCOME":
-            myId = msg.payload.id
-            render()
-            break
-        case "GAME_STATE":
-            gameState = msg.payload
-            render()
-            break
-        case "ERROR":
-            console.log("Server error:", msg.payload.message)
-            break
-    }
-})
+  switch (msg.type) {
+    case "WELCOME":
+      myId = msg.payload.id
+      render()
+      break
+    case "GAME_STATE":
+      gameState = msg.payload
+      render()
+      break
+    case "ERROR":
+      console.log("Server error:", msg.payload.message)
+      break
+  }
+}
 
-ws.addEventListener("close", () => {
-    console.log("Disconnected")
-})
+ws.onclose = () => {
+  console.log("Disconnected")
+}
 
-ws.addEventListener("error", () => {
-    console.log("WebSocket error")
-})
+ws.onerror = () => {
+  console.log("WebSocket error")
+}
 
 document.addEventListener("keydown", (e: KeyboardEvent) => {
-    const direction = keyToDirection(e.key.toLowerCase())
-    if (!direction) return
+  const direction = keyToDirection(e.key.toLowerCase())
+  if (!direction) return
 
-    if (e.key.startsWith("Arrow")) e.preventDefault()
+  if (e.key.startsWith("Arrow")) e.preventDefault()
 
-    send(ws, {type: "MOVE", payload: {direction}})
-
+  send(ws, { type: "MOVE", payload: { direction } })
 })
